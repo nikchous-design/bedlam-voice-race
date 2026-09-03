@@ -1,6 +1,6 @@
 {
-  "name": "nakrichi-za-rebenka",
-  "version": "8.0.0",
+  "name": "samyi-bystryi-shpric",
+  "version": "11.0.0",
   "private": true,
   "main": "server.js",
   "scripts": {

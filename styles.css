@@ -72,3 +72,17 @@ button,input{font:inherit}.shell{min-height:100vh;padding:22px 30px 34px;positio
 .screen-winner-banner img{width:130px;height:130px;object-fit:contain}
 .screen-winner-banner .who{font-size:42px;font-weight:1000}
 @media(max-width:900px){.presenter-grid{grid-template-columns:1fr}.screen-lobby{grid-template-columns:1fr}.screen-team img{width:120px;height:120px}.screen-qr .qr{width:min(62vw,300px);height:min(62vw,300px)}}
+
+/* v10 SHOW MODE */
+.screen-stage.racing .runner img{animation:babyCrawl .34s ease-in-out infinite alternate}
+@keyframes babyCrawl{from{transform:rotate(-4deg) translateY(1px)}to{transform:rotate(5deg) translateY(-7px)}}
+.shout{position:absolute;left:82px;top:-7px;z-index:8;padding:6px 11px;border-radius:999px;background:#fff;font-size:15px;font-weight:1000;opacity:0;transform:scale(.7);transition:.1s;white-space:nowrap;box-shadow:0 6px 18px rgba(40,40,70,.12)}
+.runner.loud .shout{opacity:1;transform:scale(1)}
+.confetti-layer{position:fixed;inset:0;pointer-events:none;z-index:80;overflow:hidden}
+.confetti-piece{position:absolute;top:-8vh;width:12px;height:22px;border-radius:3px;animation:confettiFall 2.8s linear forwards}
+@keyframes confettiFall{to{transform:translate3d(var(--drift),115vh,0) rotate(900deg)}}
+.ready-pulse{animation:readyPulse .8s ease-in-out infinite alternate}
+@keyframes readyPulse{to{transform:scale(1.04)}}
+@media(prefers-reduced-motion:reduce){.screen-stage.racing .runner img,.ready-pulse{animation:none}.confetti-piece{display:none}}
+
+.med-body{background:#f8f5f6;color:#40343a}.med-shell,.med-screen{background:radial-gradient(circle at 15% 15%,rgba(178,232,220,.5),transparent 30%),radial-gradient(circle at 85% 20%,rgba(247,183,202,.5),transparent 32%),linear-gradient(135deg,#fbfaf9,#fff5f8)}.med-screen{min-height:100vh;padding:24px 34px}.med-header{text-align:center}.med-header h1{font-size:clamp(34px,5vw,72px);margin:4px 0;font-weight:1000}.med-kicker{font-weight:1000;letter-spacing:.18em;color:#7c6871}.med-lobby{display:grid;grid-template-columns:1fr minmax(320px,.8fr) 1fr;gap:22px;align-items:center;margin-top:30px}.med-card,.med-qr{background:#fffffff0;border-radius:32px;padding:26px;text-align:center;box-shadow:0 22px 60px #624a551a}.med-cross{font-size:55px;color:#75bcae}.rings{font-size:58px}.med-big{font-size:42px;font-weight:1000}.med-note{font-size:18px;font-weight:800}.syringe-race{display:none;max-width:1500px;margin:18px auto}.race-head{display:flex;justify-content:space-between;font-size:20px;font-weight:1000}.lanes{display:grid;gap:7px}.syringe-lane{display:grid;grid-template-columns:170px 1fr 55px;gap:10px;align-items:center}.lane-name{font-weight:1000;overflow:hidden}.lane-road{position:relative;height:45px;border-radius:16px;background:linear-gradient(90deg,#e7f5f1,#fff,#fbe8ef);border:1px dashed #cfb6c0;overflow:hidden}.syringe-runner{position:absolute;top:2px;font-size:31px;transition:left .08s linear;transform:rotate(-8deg)}.peach-finish{position:absolute;right:5px;top:1px;font-size:32px}.lane-pct{font-weight:1000}.med-winner{display:none;text-align:center;background:#fff;border-radius:28px;padding:20px;margin:18px auto;max-width:700px;font-size:22px;font-weight:900}.med-winner.show{display:block}.med-winner strong{display:block;font-size:45px}.winner-icon{font-size:55px}.med-level i,.meter i{background:linear-gradient(90deg,#74c5b5,#efa8bf)}.med-join{border-top:8px solid #9ed7cc}@media(max-width:900px){.med-lobby{grid-template-columns:1fr}.syringe-lane{grid-template-columns:90px 1fr 45px}.med-screen{padding:15px}}
