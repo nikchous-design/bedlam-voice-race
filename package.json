@@ -1,8 +1,8 @@
 {
   "name": "bedlam-voice-race",
-  "version": "2.0.0",
+  "version": "3.0.0",
   "private": true,
-  "description": "Голосовая гонка для мероприятий",
+  "description": "Мультиплеерная голосовая гонка для мероприятий",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"

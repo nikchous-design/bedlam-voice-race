@@ -1,3 +1,56 @@
-<!doctype html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>BEDLAM VOICE RACE</title><link rel="stylesheet" href="/styles.css"></head><body><div class="wrap"><div class="top"><div><h1 class="title">BEDLAM VOICE RACE</h1><div class="subtitle">Громче голос — быстрее гонщик.</div></div><div class="controls"><button class="btn primary" id="startBtn">СТАРТ</button><button class="btn" id="resetBtn">СБРОС</button><button class="btn" id="newBtn">НОВАЯ КОМНАТА</button><button class="btn" id="fullBtn">НА ВЕСЬ ЭКРАН</button></div></div><div class="panel" style="margin-top:20px"><div class="roomBox"><img class="qr" id="qr"><div><div class="small">Игроки сканируют QR:</div><div class="code" id="code"></div><div class="small" id="joinUrl"></div><div class="small" id="conn">Подключение…</div></div></div></div><div id="race" class="race"></div></div><div id="countdown" class="countdown"></div><div id="winner" class="winner"><div class="panel" style="text-align:center"><div style="font-size:90px">🏆</div><div class="small">ПОБЕДИТЕЛЬ</div><div id="winnerName" class="winnerName"></div><button class="btn primary" id="againBtn">РЕВАНШ</button></div></div><script>
-const cars=['🏎️','🚗','🚙','🚕','🚓','🚘','🛻','🚖'];let room=sessionStorage.getItem('vrroom')||Math.random().toString(36).slice(2,6).toUpperCase();sessionStorage.setItem('vrroom',room);let ws,state={players:[],running:false,winner:null};const $=x=>document.getElementById(x);function wsu(){return(location.protocol==='https:'?'wss://':'ws://')+location.host}function ju(){return location.origin+'/join/'+room}function setup(){$('code').textContent=room;$('joinUrl').textContent=ju();$('qr').src='/qr?text='+encodeURIComponent(ju())}function connect(){ws=new WebSocket(wsu());ws.onopen=()=>{$('conn').textContent='Сервер подключён';ws.send(JSON.stringify({type:'host_join',room}))};ws.onclose=()=>setTimeout(connect,1200);ws.onmessage=e=>{const m=JSON.parse(e.data);if(m.type==='state'){state=m;render()}}}function send(o){if(ws&&ws.readyState===1)ws.send(JSON.stringify(o))}function render(){const r=$('race');r.innerHTML=state.players.length?state.players.map((p,i)=>`<div class="lane"><div class="name">${p.name}</div><div class="meter"><i style="width:${(p.level||0)*100}%"></i></div><div class="car" style="left:${4+(Math.min(100,p.position||0)/100)*90}%">${cars[i%cars.length]}</div></div>`).join(''):'<div class="panel empty">Пока никто не подключился.</div>';$('startBtn').disabled=!state.players.length||state.running;if(state.winner){$('winnerName').textContent=state.winner.name;$('winner').classList.add('show')}else $('winner').classList.remove('show')}async function start(){if(!state.players.length)return;$('countdown').classList.add('show');for(const x of ['3','2','1','GO!']){$('countdown').textContent=x;await new Promise(r=>setTimeout(r,650))}$('countdown').classList.remove('show');send({type:'start'})}setup();connect();$('startBtn').onclick=start;$('againBtn').onclick=()=>{$('winner').classList.remove('show');start()};$('resetBtn').onclick=()=>send({type:'reset'});$('newBtn').onclick=()=>{room=Math.random().toString(36).slice(2,6).toUpperCase();sessionStorage.setItem('vrroom',room);setup();send({type:'host_join',room})};$('fullBtn').onclick=()=>document.documentElement.requestFullscreen?.();
+<!doctype html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>BEDLAM VOICE RACE</title><link rel="stylesheet" href="/styles.css"></head><body>
+<div class="wrap">
+  <div class="top">
+    <div><h1 class="title">BEDLAM VOICE RACE</h1><div class="subtitle">Каждый игрок подключается со СВОЕГО телефона.</div></div>
+    <div class="controls">
+      <button class="btn primary" id="startBtn">СТАРТ</button>
+      <button class="btn" id="resetBtn">СБРОС</button>
+      <button class="btn danger" id="clearBtn">УБРАТЬ ИГРОКОВ</button>
+      <button class="btn" id="newBtn">НОВАЯ КОМНАТА</button>
+      <button class="btn" id="fullBtn">НА ВЕСЬ ЭКРАН</button>
+    </div>
+  </div>
+
+  <div class="panel" style="margin-top:20px">
+    <div class="roomBox">
+      <img class="qr" id="qr" alt="QR">
+      <div>
+        <div class="small">Все участники сканируют ОДИН И ТОТ ЖЕ QR со своих телефонов.</div>
+        <div class="code" id="code"></div>
+        <div class="small" id="joinUrl" style="word-break:break-all"></div>
+        <div class="playerCount"><span id="count">0</span> игроков подключено</div>
+        <div class="small" id="conn">Подключение…</div>
+      </div>
+    </div>
+  </div>
+
+  <div id="race" class="race"></div>
+</div>
+<div id="countdown" class="countdown"></div>
+<div id="winner" class="winner"><div class="panel winnerCard"><div class="trophy">🏆</div><div class="small">ПОБЕДИТЕЛЬ</div><div id="winnerName" class="winnerName"></div><button class="btn primary" id="againBtn" style="margin-top:28px">РЕВАНШ</button></div></div>
+
+<script>
+const carIcons=['🏎️','🚗','🚙','🚕','🚓','🚘','🛻','🚖','🏍️','🛵','🚜','🚚'];
+let room=sessionStorage.getItem('voiceRaceRoom')||makeCode();
+sessionStorage.setItem('voiceRaceRoom',room);
+let ws,state={players:[],running:false,winner:null};
+
+const codeEl=document.getElementById('code'),joinUrlEl=document.getElementById('joinUrl'),qr=document.getElementById('qr'),conn=document.getElementById('conn'),race=document.getElementById('race'),winner=document.getElementById('winner'),winnerName=document.getElementById('winnerName'),countdown=document.getElementById('countdown'),count=document.getElementById('count');
+function makeCode(){return Math.random().toString(36).slice(2,6).toUpperCase();}
+function wsUrl(){return (location.protocol==='https:'?'wss://':'ws://')+location.host;}
+function joinUrl(){return location.origin+'/join/'+room;}
+function setupRoom(){codeEl.textContent=room;joinUrlEl.textContent=joinUrl();qr.src='/qr?text='+encodeURIComponent(joinUrl());}
+function connect(){ws=new WebSocket(wsUrl());ws.onopen=()=>{conn.textContent='Сервер подключён';ws.send(JSON.stringify({type:'host_join',room}));};ws.onclose=()=>{conn.textContent='Переподключение…';setTimeout(connect,1200);};ws.onmessage=e=>{const m=JSON.parse(e.data);if(m.type==='state'){state=m;render();}};}
+function send(o){if(ws&&ws.readyState===1)ws.send(JSON.stringify(o));}
+function esc(s){return String(s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));}
+function render(){
+  count.textContent=state.players.filter(p=>p.connected).length;
+  race.innerHTML=state.players.length?state.players.map((p,i)=>`<div class="lane"><div class="name">Игрок ${i+1}: ${esc(p.name)} ${p.connected?'':'(нет связи)'}</div><div class="meter"><i style="width:${Math.round((p.level||0)*100)}%"></i></div><div class="car" style="left:${4+(Math.min(100,p.position||0)/100)*90}%">${carIcons[i%carIcons.length]}</div></div>`).join(''):'<div class="panel empty">Пока никто не подключился. Каждый участник сканирует QR на СВОЁМ телефоне.</div>';
+  if(state.winner){winnerName.textContent=state.winner.name;winner.classList.add('show');}else winner.classList.remove('show');
+  startBtn.disabled=!state.players.some(p=>p.connected)||state.running;
+}
+async function startRace(){if(!state.players.some(p=>p.connected))return;winner.classList.remove('show');countdown.classList.add('show');for(const x of ['3','2','1','GO!']){countdown.textContent=x;await new Promise(r=>setTimeout(r,x==='GO!'?500:650));}countdown.classList.remove('show');send({type:'start'});}
+setupRoom();connect();
+startBtn.onclick=startRace;againBtn.onclick=()=>{winner.classList.remove('show');startRace();};resetBtn.onclick=()=>send({type:'reset'});clearBtn.onclick=()=>send({type:'clear_players'});
+newBtn.onclick=()=>{room=makeCode();sessionStorage.setItem('voiceRaceRoom',room);setupRoom();send({type:'host_join',room});};fullBtn.onclick=()=>document.documentElement.requestFullscreen?.();
 </script></body></html>
