@@ -25,3 +25,50 @@ button,input{font:inherit}.shell{min-height:100vh;padding:22px 30px 34px;positio
 .win-card{text-align:center;padding:45px;width:min(700px,90vw);border-radius:35px;background:white;box-shadow:0 30px 100px rgba(64,54,90,.18)}.win-baby-img{width:180px;height:180px;object-fit:contain}.win-label{font-size:14px;color:var(--muted);font-weight:900}.win-name{font-size:clamp(36px,6vw,76px);font-weight:1000;line-height:1;margin:8px 0 22px}
 .join{min-height:100vh;display:grid;place-items:center;padding:20px;background:linear-gradient(135deg,#e9f7ff,#fff0f7)}.phone{width:min(590px,100%);background:rgba(255,255,255,.9);padding:25px;border-radius:30px;box-shadow:0 25px 80px rgba(74,65,100,.14)}.phone-logo{text-align:center;font-size:37px;font-weight:1000}.phone-logo span:first-child{color:var(--blue2)}.phone-logo span:last-child{color:var(--pink2)}.phone h1{font-size:30px;margin:22px 0 7px}.copy{color:var(--muted);line-height:1.5}.input{width:100%;padding:15px 16px;border-radius:15px;border:1px solid #ddd9e6;background:#fff;outline:none;margin-top:15px}.team-pick{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}.team-btn{border:3px solid transparent;padding:12px 10px;border-radius:18px;background:#f7f7fa;font-weight:1000;cursor:pointer}.team-btn img{display:block;width:78px;height:78px;object-fit:contain;margin:0 auto 3px}.team-btn.boy{color:var(--blue2)}.team-btn.girl{color:var(--pink2)}.team-btn.selected.boy{border-color:var(--blue);background:#eaf7ff}.team-btn.selected.girl{border-color:var(--pink);background:#fff0f7}.big{width:100%;border:0;padding:17px;border-radius:16px;margin-top:12px;background:linear-gradient(135deg,var(--blue2),var(--pink2));color:#fff;font-weight:1000;font-size:18px}.level{height:28px;border-radius:99px;background:#ecebf2;overflow:hidden;margin:22px 0}.level i{display:block;width:0;height:100%;background:linear-gradient(90deg,var(--blue2),var(--pink2))}.status{font-size:22px;font-weight:1000}.hidden{display:none!important}
 @media(max-width:900px){.lobby{grid-template-columns:1fr 1fr}.center{grid-column:1/-1;grid-row:1}.qr{width:min(55vw,280px);height:min(55vw,280px)}}@media(max-width:620px){.shell{padding:15px}.lobby{grid-template-columns:1fr}.center{grid-column:auto}.qr{width:min(72vw,280px);height:min(72vw,280px)}}
+
+.team-head span{display:inline-block;margin-left:8px;padding:3px 8px;border-radius:999px;background:rgba(255,255,255,.75);font-size:12px;vertical-align:middle}
+
+
+/* v8 — Presenter Mode */
+.presenter-shell{min-height:100vh;padding:20px;background:linear-gradient(120deg,#edf8ff,#fff2f8)}
+.presenter-top{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:16px}
+.presenter-brand{font-weight:1000;font-size:34px;letter-spacing:-.04em}
+.presenter-brand .b{color:var(--blue2)}.presenter-brand .p{color:var(--pink2)}
+.presenter-meta{font-size:13px;color:var(--muted);font-weight:800}
+.presenter-grid{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(300px,.8fr);gap:16px}
+.panel{background:rgba(255,255,255,.9);border:1px solid rgba(255,255,255,.9);border-radius:24px;padding:18px;box-shadow:0 18px 50px rgba(54,54,86,.08)}
+.panel h2{margin:0 0 12px;font-size:18px}
+.presenter-actions{display:grid;grid-template-columns:1.2fr 1fr;gap:10px}
+.presenter-actions .btn{min-height:54px}
+.btn.screen-btn{background:#27263a;color:#fff}
+.team-summary{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px}
+.summary-card{border-radius:20px;padding:16px}.summary-card.boy{background:#eef8ff}.summary-card.girl{background:#fff1f8}
+.summary-card strong{display:block;font-size:20px}.summary-count{font-size:34px;font-weight:1000}
+.control-list{display:grid;gap:8px;max-height:250px;overflow:auto}.control-player{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;background:#f8f8fb;border-radius:12px;padding:10px 12px;font-weight:800}
+.control-level{width:110px;height:10px;background:#e8e7ee;border-radius:999px;overflow:hidden}.control-level i{display:block;height:100%}
+.control-level.boy i{background:linear-gradient(90deg,var(--blue),var(--blue2))}.control-level.girl i{background:linear-gradient(90deg,var(--pink),var(--pink2))}
+.control-links{font-size:12px;color:var(--muted);word-break:break-all}
+.control-status{padding:12px 14px;border-radius:14px;background:#f5f4f8;font-weight:900;margin-top:12px}
+.screen-stage{min-height:100vh;padding:24px 32px;background:linear-gradient(110deg,#eaf7ff 0 49.8%,#fff0f7 50.2% 100%);display:flex;flex-direction:column}
+.screen-stage .header{flex:0 0 auto}
+.screen-main{flex:1;display:flex;flex-direction:column;justify-content:center}
+.screen-lobby{display:grid;grid-template-columns:1fr minmax(320px,.85fr) 1fr;gap:18px;align-items:center}
+.screen-team{background:rgba(255,255,255,.78);border-radius:28px;padding:18px;text-align:center}
+.screen-team img{width:min(14vw,180px);height:min(14vw,180px);object-fit:contain}
+.screen-team .big-count{font-size:42px;font-weight:1000}
+.screen-qr{text-align:center;background:rgba(255,255,255,.82);border-radius:28px;padding:18px}
+.screen-qr .qr{width:min(28vw,330px);height:min(28vw,330px);margin:auto}
+.screen-race{display:none}
+.screen-stage.racing .screen-lobby{display:none}
+.screen-stage.racing .screen-race{display:block}
+.screen-stage.finished .screen-lobby{display:none}
+.screen-stage.finished .screen-race{display:block}
+.screen-stage .track{height:180px}
+.screen-stage .runner{width:125px;height:125px;top:44px}
+.screen-stage .race-title{font-size:28px}
+.screen-footer{text-align:center;font-size:13px;color:var(--muted);font-weight:800;margin-top:8px}
+.screen-winner-banner{display:none;text-align:center;margin:18px auto 0;padding:18px 24px;border-radius:24px;background:#fff;box-shadow:0 20px 70px rgba(50,50,80,.12);max-width:760px}
+.screen-stage.finished .screen-winner-banner{display:block}
+.screen-winner-banner img{width:130px;height:130px;object-fit:contain}
+.screen-winner-banner .who{font-size:42px;font-weight:1000}
+@media(max-width:900px){.presenter-grid{grid-template-columns:1fr}.screen-lobby{grid-template-columns:1fr}.screen-team img{width:120px;height:120px}.screen-qr .qr{width:min(62vw,300px);height:min(62vw,300px)}}

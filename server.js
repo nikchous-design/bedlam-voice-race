@@ -10,7 +10,9 @@ const wss=new WebSocketServer({server});
 
 app.use(express.static(__dirname));
 
-app.get('/',(_,res)=>res.sendFile(path.join(__dirname,'host.html')));
+app.get('/',(_,res)=>res.redirect('/control'));
+app.get('/control',(_,res)=>res.sendFile(path.join(__dirname,'control.html')));
+app.get('/screen',(_,res)=>res.sendFile(path.join(__dirname,'screen.html')));
 app.get('/join/:room',(_,res)=>res.sendFile(path.join(__dirname,'join.html')));
 
 app.get('/qr',async(req,res)=>{
@@ -24,14 +26,16 @@ app.get('/qr',async(req,res)=>{
 });
 
 const rooms=new Map();
-const MAX=12;
+const MAX=6;
+const TEAM_MAX=3;
 const FINISH=300; // v6: трасса в 3 раза длиннее
 
 function room(code){
   if(!rooms.has(code)){
     rooms.set(code,{
       code,
-      host:null,
+      controllers:new Set(),
+      screens:new Set(),
       players:new Map(),
       running:false,
       winner:null,
@@ -49,6 +53,7 @@ function state(r){
     winner:r.winner,
     finish:r.finish,
     maxPlayers:MAX,
+    teamMax:TEAM_MAX,
     players:[...r.players.values()].map(p=>({
       id:p.id,
       clientId:p.clientId,
@@ -66,7 +71,8 @@ function send(ws,o){
 }
 function broadcast(r){
   const s=state(r);
-  send(r.host,s);
+  for(const ws of r.controllers)send(ws,s);
+  for(const ws of r.screens)send(ws,s);
   for(const p of r.players.values())send(p.ws,s);
 }
 
@@ -77,12 +83,19 @@ wss.on('connection',ws=>{
     let m;
     try{m=JSON.parse(String(raw))}catch{return}
 
-    if(m.type==='host_join'){
+    if(m.type==='control_join'||m.type==='screen_join'||m.type==='host_join'){
       const c=String(m.room||'').toUpperCase().slice(0,8);
       if(!c)return;
       const r=room(c);
-      r.host=ws;
-      ws.meta={role:'host',room:c,clientId:null};
+
+      if(m.type==='screen_join'){
+        r.screens.add(ws);
+        ws.meta={role:'screen',room:c,clientId:null};
+      }else{
+        r.controllers.add(ws);
+        ws.meta={role:'control',room:c,clientId:null};
+      }
+
       broadcast(r);
       return;
     }
@@ -95,6 +108,12 @@ wss.on('connection',ws=>{
 
       const r=room(c);
       let p=r.players.get(cid);
+
+      const teamCount=[...r.players.values()].filter(x=>x.team===team && x.clientId!==cid).length;
+      if(teamCount>=TEAM_MAX){
+        send(ws,{type:'team_full',team,maxPlayers:TEAM_MAX});
+        return;
+      }
 
       if(p){
         p.ws=ws;
@@ -130,7 +149,13 @@ wss.on('connection',ws=>{
     const r=ws.meta.room?rooms.get(ws.meta.room):null;
     if(!r)return;
 
-    if(m.type==='start'&&ws.meta.role==='host'){
+    if(m.type==='start'&&ws.meta.role==='control'){
+      const boys=[...r.players.values()].filter(p=>p.team==='boy'&&p.connected).length;
+      const girls=[...r.players.values()].filter(p=>p.team==='girl'&&p.connected).length;
+      if(boys!==TEAM_MAX||girls!==TEAM_MAX){
+        send(ws,{type:'need_full_teams',boys,girls,teamMax:TEAM_MAX});
+        return;
+      }
       r.running=true;
       r.winner=null;
       for(const p of r.players.values()){
@@ -141,7 +166,7 @@ wss.on('connection',ws=>{
       return;
     }
 
-    if(m.type==='reset'&&ws.meta.role==='host'){
+    if(m.type==='reset'&&ws.meta.role==='control'){
       r.running=false;
       r.winner=null;
       for(const p of r.players.values()){
@@ -152,7 +177,7 @@ wss.on('connection',ws=>{
       return;
     }
 
-    if(m.type==='clear_players'&&ws.meta.role==='host'){
+    if(m.type==='clear_players'&&ws.meta.role==='control'){
       r.running=false;
       r.winner=null;
       for(const p of r.players.values()){
@@ -177,7 +202,8 @@ wss.on('connection',ws=>{
     const r=c?rooms.get(c):null;
     if(!r)return;
 
-    if(role==='host'&&r.host===ws)r.host=null;
+    if(role==='control')r.controllers.delete(ws);
+    if(role==='screen')r.screens.delete(ws);
 
     if(role==='player'){
       const p=r.players.get(clientId);
@@ -238,5 +264,5 @@ setInterval(()=>{
 
 const port=process.env.PORT||3000;
 server.listen(port,'0.0.0.0',()=>{
-  console.log('Накричи ЗА ребёнка v6 запущено:',port);
+  console.log('Накричи ЗА ребёнка v8 Presenter Mode запущено:',port);
 });
