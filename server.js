@@ -8,10 +8,14 @@ const app = express();
 const server = http.createServer(app);
 const wss = new WebSocketServer({ server });
 
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static(__dirname));
+
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'host.html'));
+});
 
 app.get('/join/:room', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'join.html'));
+  res.sendFile(path.join(__dirname, 'join.html'));
 });
 
 app.get('/qr', async (req, res) => {
