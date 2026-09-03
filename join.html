@@ -1,0 +1,113 @@
+
+<!doctype html><html lang="ru"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>BEDLAM VOICE RACE — экран ведущего</title><link rel="stylesheet" href="/styles.css">
+</head><body>
+<div class="wrap">
+  <div class="top">
+    <div><h1 class="title">BEDLAM VOICE RACE</h1><div class="subtitle">Громче голос — быстрее гонщик.</div></div>
+    <div class="controls">
+      <button class="btn primary" id="startBtn">СТАРТ</button>
+      <button class="btn" id="resetBtn">СБРОС</button>
+      <button class="btn" id="newBtn">НОВАЯ КОМНАТА</button>
+      <button class="btn" id="fullBtn">НА ВЕСЬ ЭКРАН</button>
+    </div>
+  </div>
+
+  <div class="panel" style="margin-top:20px">
+    <div class="roomBox">
+      <img class="qr" id="qr" alt="QR">
+      <div>
+        <div class="small">Игроки сканируют QR или заходят по ссылке:</div>
+        <div class="code" id="code"></div>
+        <div class="small" id="joinUrl" style="word-break:break-all"></div>
+        <div class="small" id="conn">Подключение…</div>
+      </div>
+    </div>
+  </div>
+
+  <div id="race" class="race"></div>
+</div>
+<div id="countdown" class="countdown"></div>
+<div id="winner" class="winner"><div class="panel winnerCard">
+  <div class="trophy">🏆</div><div class="small">ПОБЕДИТЕЛЬ</div>
+  <div id="winnerName" class="winnerName"></div>
+  <button class="btn primary" id="againBtn" style="margin-top:28px">РЕВАНШ</button>
+</div></div>
+
+<script>
+const carIcons = ['🏎️','🚗','🚙','🏁','🚕','🚓','🚘','🛻'];
+let room = sessionStorage.getItem('voiceRaceRoom') || makeCode();
+sessionStorage.setItem('voiceRaceRoom', room);
+
+const codeEl = document.getElementById('code');
+const raceEl = document.getElementById('race');
+const qrEl = document.getElementById('qr');
+const joinUrlEl = document.getElementById('joinUrl');
+const connEl = document.getElementById('conn');
+const winnerEl = document.getElementById('winner');
+const winnerName = document.getElementById('winnerName');
+const countdown = document.getElementById('countdown');
+let ws, state={players:[],running:false,winner:null};
+
+function makeCode(){ return Math.random().toString(36).slice(2,6).toUpperCase(); }
+function wsUrl(){ return (location.protocol==='https:'?'wss://':'ws://') + location.host; }
+function joinUrl(){ return location.origin + '/join/' + room; }
+
+function setupRoom(){
+  codeEl.textContent = room;
+  joinUrlEl.textContent = joinUrl();
+  qrEl.src = '/qr?text=' + encodeURIComponent(joinUrl());
+}
+setupRoom();
+
+function connect(){
+  ws = new WebSocket(wsUrl());
+  ws.onopen=()=>{ connEl.textContent='Сервер подключён'; ws.send(JSON.stringify({type:'host_join',room})); };
+  ws.onclose=()=>{ connEl.textContent='Переподключение…'; setTimeout(connect,1200); };
+  ws.onmessage=e=>{
+    const m=JSON.parse(e.data);
+    if(m.type==='state'){ state=m; render(); }
+  };
+}
+connect();
+
+function send(obj){ if(ws && ws.readyState===1) ws.send(JSON.stringify(obj)); }
+
+function render(){
+  if(!state.players.length){
+    raceEl.innerHTML='<div class="panel empty">Пока никто не подключился. Пусть игроки сканируют QR.</div>';
+  } else {
+    raceEl.innerHTML=state.players.map((p,i)=>`
+      <div class="lane">
+        <div class="name">${escapeHtml(p.name)} ${p.connected?'':'(нет связи)'}</div>
+        <div class="meter"><i style="width:${Math.round((p.level||0)*100)}%"></i></div>
+        <div class="car" style="left:${4 + (Math.min(100,p.position||0)/100)*90}%">${carIcons[i%carIcons.length]}</div>
+      </div>`).join('');
+  }
+  if(state.winner){
+    winnerName.textContent=state.winner.name;
+    winnerEl.classList.add('show');
+  } else winnerEl.classList.remove('show');
+  document.getElementById('startBtn').disabled = !state.players.length || state.running;
+}
+
+function escapeHtml(s){ return String(s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
+
+async function startRace(){
+  if(!state.players.length) return;
+  winnerEl.classList.remove('show');
+  countdown.classList.add('show');
+  for(const x of ['3','2','1','GO!']){
+    countdown.textContent=x;
+    await new Promise(r=>setTimeout(r, x==='GO!'?500:650));
+  }
+  countdown.classList.remove('show');
+  send({type:'start'});
+}
+document.getElementById('startBtn').onclick=startRace;
+document.getElementById('againBtn').onclick=()=>{winnerEl.classList.remove('show');startRace();};
+document.getElementById('resetBtn').onclick=()=>send({type:'reset'});
+document.getElementById('newBtn').onclick=()=>{room=makeCode();sessionStorage.setItem('voiceRaceRoom',room);setupRoom();connect();};
+document.getElementById('fullBtn').onclick=()=>document.documentElement.requestFullscreen?.();
+</script></body></html>

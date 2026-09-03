@@ -1,0 +1,125 @@
+
+<!doctype html><html lang="ru"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>BEDLAM VOICE RACE — игрок</title><link rel="stylesheet" href="/styles.css">
+</head><body>
+<div class="joinWrap"><div class="panel joinCard">
+  <div id="entry">
+    <div class="small">BEDLAM VOICE RACE</div>
+    <h1 style="font-size:42px;margin:6px 0 6px">Подключиться</h1>
+    <p class="subtitle">Введи имя. Потом разреши микрофон — голос будет твоим газом.</p>
+    <input id="name" class="input" maxlength="24" placeholder="Твоё имя">
+    <button id="joinBtn" class="bigBtn btn primary">ВОЙТИ В ГОНКУ</button>
+  </div>
+
+  <div id="micStep" class="hidden">
+    <div class="small">ШАГ 1 ИЗ 2</div>
+    <h1>Разреши микрофон</h1>
+    <p class="subtitle">Аудио никуда не отправляется. Телефон отправляет только число — уровень громкости.</p>
+    <button id="micBtn" class="bigBtn btn primary">ВКЛЮЧИТЬ МИКРОФОН</button>
+    <div id="micError" class="small" style="margin-top:12px"></div>
+  </div>
+
+  <div id="calStep" class="hidden">
+    <div class="small">ШАГ 2 ИЗ 2</div>
+    <h1>Калибровка</h1>
+    <p class="subtitle">Нажми кнопку и говори/кричи так громко, как будешь во время гонки, 2 секунды.</p>
+    <div class="levelBig"><i id="calMeter"></i></div>
+    <button id="calBtn" class="bigBtn btn primary">КАЛИБРОВАТЬ 2 СЕКУНДЫ</button>
+    <div id="calText" class="small"></div>
+  </div>
+
+  <div id="game" class="hidden">
+    <div class="small">ТЫ В ИГРЕ</div>
+    <h1 id="hello" style="font-size:44px;margin:4px 0"></h1>
+    <div id="status" class="status">Жди старта ведущего</div>
+    <div class="levelBig"><i id="meter"></i></div>
+    <p class="subtitle">Когда гонка начнётся — говори, пой или ори в телефон. Чем громче, тем быстрее ты едешь.</p>
+  </div>
+</div></div>
+
+<script>
+const room = location.pathname.split('/').filter(Boolean).pop().toUpperCase();
+let ws, joined=false, playerName='', stream, analyser, data, raf, maxCal=0.12, stateRunning=false;
+const $=id=>document.getElementById(id);
+
+function wsUrl(){ return (location.protocol==='https:'?'wss://':'ws://')+location.host; }
+function connect(){
+  ws=new WebSocket(wsUrl());
+  ws.onclose=()=>setTimeout(connect,1200);
+  ws.onmessage=e=>{
+    const m=JSON.parse(e.data);
+    if(m.type==='joined'){ joined=true; }
+    if(m.type==='kicked'){ alert('Ведущий отключил тебя от игры'); location.reload(); }
+    if(m.type==='state'){
+      stateRunning=m.running;
+      if($('game').classList.contains('hidden')) return;
+      if(m.winner){
+        $('status').textContent = m.winner.name===playerName ? '🏆 ТЫ ПОБЕДИЛ!' : 'Финиш! Победил: '+m.winner.name;
+      } else if(m.running){
+        $('status').textContent='🔥 ГАЗУЙ ГОЛОСОМ!';
+      } else {
+        $('status').textContent='Жди старта ведущего';
+      }
+    }
+  };
+}
+connect();
+
+$('joinBtn').onclick=()=>{
+  playerName=$('name').value.trim() || 'Игрок';
+  $('entry').classList.add('hidden'); $('micStep').classList.remove('hidden');
+};
+
+$('micBtn').onclick=async()=>{
+  try{
+    stream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false,noiseSuppression:false,autoGainControl:false}});
+    const ctx=new (window.AudioContext||window.webkitAudioContext)();
+    const src=ctx.createMediaStreamSource(stream);
+    analyser=ctx.createAnalyser(); analyser.fftSize=1024; analyser.smoothingTimeConstant=.15;
+    src.connect(analyser); data=new Uint8Array(analyser.fftSize);
+    $('micStep').classList.add('hidden'); $('calStep').classList.remove('hidden');
+    loopAudio();
+  }catch(err){
+    $('micError').textContent='Не получилось открыть микрофон. Проверь разрешение браузера и обязательно HTTPS.';
+  }
+};
+
+function rawLevel(){
+  if(!analyser) return 0;
+  analyser.getByteTimeDomainData(data);
+  let sum=0;
+  for(let i=0;i<data.length;i++){ const v=(data[i]-128)/128; sum+=v*v; }
+  return Math.sqrt(sum/data.length);
+}
+function normalized(raw){
+  const noise=0.008;
+  return Math.max(0,Math.min(1,(raw-noise)/Math.max(.02,maxCal-noise)));
+}
+function loopAudio(){
+  const raw=rawLevel();
+  $('calMeter').style.width=Math.min(100,raw/.35*100)+'%';
+  const n=normalized(raw);
+  $('meter').style.width=(n*100)+'%';
+  if(joined && ws.readyState===1) ws.send(JSON.stringify({type:'level',level:n}));
+  raf=requestAnimationFrame(loopAudio);
+}
+
+$('calBtn').onclick=async()=>{
+  $('calBtn').disabled=true; $('calText').textContent='Говори громко…';
+  let max=0;
+  const start=performance.now();
+  while(performance.now()-start<2000){
+    max=Math.max(max,rawLevel());
+    await new Promise(r=>setTimeout(r,30));
+  }
+  maxCal=Math.max(.03,max);
+  $('calText').textContent='Готово!';
+  $('calStep').classList.add('hidden'); $('game').classList.remove('hidden');
+  $('hello').textContent=playerName;
+  if(ws.readyState===1) ws.send(JSON.stringify({type:'player_join',room,name:playerName}));
+  else {
+    const wait=setInterval(()=>{if(ws.readyState===1){clearInterval(wait);ws.send(JSON.stringify({type:'player_join',room,name:playerName}));}},100);
+  }
+};
+</script></body></html>
