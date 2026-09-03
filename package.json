@@ -1,52 +1,18 @@
-
-:root{
-  --bg:#0b0d12; --card:#141824; --text:#f7f7fb; --muted:#a8afc2;
-  --accent:#8cff3f; --danger:#ff4d67;
-}
-*{box-sizing:border-box}
-body{margin:0;background:
-radial-gradient(circle at 20% 10%, rgba(125,70,255,.20), transparent 35%),
-radial-gradient(circle at 80% 0%, rgba(0,210,255,.13), transparent 35%),
-var(--bg);color:var(--text);font-family:Inter,system-ui,Arial,sans-serif;min-height:100vh}
-button,input{font:inherit}
-.wrap{max-width:1500px;margin:0 auto;padding:24px}
-.top{display:flex;gap:20px;align-items:center;justify-content:space-between;flex-wrap:wrap}
-.title{font-size:clamp(28px,4vw,56px);font-weight:900;letter-spacing:-.04em;margin:0}
-.subtitle{color:var(--muted);margin-top:8px}
-.panel{background:rgba(20,24,36,.88);border:1px solid rgba(255,255,255,.08);border-radius:24px;padding:20px;box-shadow:0 20px 70px rgba(0,0,0,.28)}
-.controls{display:flex;gap:12px;flex-wrap:wrap}
-.btn{border:0;border-radius:16px;padding:14px 20px;font-weight:800;cursor:pointer;background:#242a3a;color:white}
-.btn.primary{background:var(--accent);color:#10150c}
-.btn.danger{background:var(--danger)}
-.btn:disabled{opacity:.45;cursor:not-allowed}
-.roomBox{display:flex;align-items:center;gap:18px}
-.qr{width:170px;height:170px;background:white;border-radius:16px;padding:8px}
-.code{font-size:42px;font-weight:900;letter-spacing:.14em}
-.race{margin-top:20px;display:grid;gap:14px}
-.lane{position:relative;height:92px;border-radius:20px;overflow:hidden;background:linear-gradient(90deg,#1a2030,#111520);border:1px solid rgba(255,255,255,.07)}
-.lane::after{content:"";position:absolute;right:6%;top:0;bottom:0;width:8px;background:repeating-linear-gradient(0deg,#fff 0 8px,#111 8px 16px)}
-.name{position:absolute;left:14px;top:10px;font-weight:900;z-index:4;text-shadow:0 2px 8px #000}
-.meter{position:absolute;left:14px;bottom:10px;width:150px;height:10px;background:#272d3d;border-radius:999px;overflow:hidden;z-index:4}
-.meter>i{display:block;height:100%;width:0;background:var(--accent);transition:width .05s linear}
-.car{position:absolute;left:4%;top:42px;font-size:38px;transform:translateX(-50%);transition:left .05s linear;z-index:3;filter:drop-shadow(0 8px 8px rgba(0,0,0,.35))}
-.empty{padding:40px;text-align:center;color:var(--muted)}
-.winner{position:fixed;inset:0;background:rgba(3,5,9,.84);display:none;align-items:center;justify-content:center;z-index:50;backdrop-filter:blur(8px)}
-.winner.show{display:flex}
-.winnerCard{text-align:center;padding:44px;max-width:720px}
-.trophy{font-size:92px}
-.winnerName{font-size:clamp(44px,8vw,100px);font-weight:1000;line-height:.95}
-.small{font-size:14px;color:var(--muted)}
-.joinWrap{max-width:680px;margin:0 auto;padding:24px;min-height:100vh;display:flex;align-items:center}
-.joinCard{width:100%}
-.input{width:100%;border:1px solid rgba(255,255,255,.12);background:#0e121b;color:white;border-radius:16px;padding:16px 18px;outline:none}
-.bigBtn{width:100%;padding:18px;border-radius:18px;border:0;font-size:20px;font-weight:900;margin-top:12px}
-.levelBig{height:30px;border-radius:999px;background:#242a38;overflow:hidden;margin:24px 0}
-.levelBig i{display:block;height:100%;width:0;background:linear-gradient(90deg,#59ff6a,#ffe66b,#ff5468);transition:width .05s}
-.status{font-weight:800;font-size:20px}
-.hidden{display:none!important}
-.countdown{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.65);z-index:40;font-size:20vw;font-weight:1000}
-.countdown.show{display:flex}
-@media (max-width:700px){
-  .wrap{padding:14px}.panel{border-radius:18px;padding:16px}.roomBox{align-items:flex-start}
-  .qr{width:130px;height:130px}.code{font-size:30px}
+{
+  "name": "bedlam-voice-race",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Голосовая гонка для мероприятий",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "express": "^4.21.2",
+    "qrcode": "^1.5.4",
+    "ws": "^8.18.0"
+  }
 }
