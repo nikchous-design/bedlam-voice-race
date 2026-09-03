@@ -1,1 +1,17 @@
-{"name":"shustrot-voice-race","version":"4.0.0","private":true,"main":"server.js","scripts":{"start":"node server.js"},"engines":{"node":">=18"},"dependencies":{"express":"^4.21.2","qrcode":"^1.5.4","ws":"^8.18.0"}}
+{
+  "name": "nakrichi-za-rebenka",
+  "version": "6.0.0",
+  "private": true,
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "express": "^4.21.2",
+    "qrcode": "^1.5.4",
+    "ws": "^8.18.0"
+  }
+}

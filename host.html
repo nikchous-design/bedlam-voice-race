@@ -1,3 +1,165 @@
-<!doctype html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ШУСТРОТ</title><link rel="stylesheet" href="/styles.css"></head><body><div class="host"><header class="header"><div class="brand"><div class="mark">⚡</div><div><div class="title">ШУСТ<span>РОТ</span></div><div class="sub">голосовая гонка</div></div></div><div class="controls"><button class="btn primary" id="startBtn">▶ СТАРТ</button><button class="btn" id="resetBtn">↺ СБРОС</button><button class="btn danger" id="clearBtn">✕ УБРАТЬ ИГРОКОВ</button><button class="btn purple" id="newBtn">НОВАЯ КОМНАТА</button><button class="btn" id="fullBtn">⛶ ВЕСЬ ЭКРАН</button></div></header><section class="grid"><aside class="card"><div class="section">УЧАСТНИКИ</div><div id="players" class="players"></div><div id="pempty" class="empty">Пока никого нет</div></aside><main class="card center"><div class="kicker">подключение к заезду</div><div class="qrtitle">СКАНИРУЙ <span>QR-КОД</span></div><div class="muted">Каждый участник открывает ссылку на своём телефоне</div><div class="qrbox"><img id="qr" class="qr"></div><div class="roomlabel">Код комнаты</div><div id="code" class="roomcode"></div><div id="url" class="url"></div><div class="count"><strong id="count">0</strong> / 12 игроков подключено</div></main><aside class="card how"><div class="section">КАК ИГРАТЬ</div><div class="steps"><div class="step"><div class="snum">1</div><div><b>Сканируй QR</b><span>Открой ссылку на своём телефоне.</span></div></div><div class="step"><div class="snum">2</div><div><b>Назови себя</b><span>Введи имя и разреши микрофон.</span></div></div><div class="step"><div class="snum">3</div><div><b>Газуй голосом</b><span>Чем громче — тем быстрее едешь.</span></div></div></div><div class="tip"><b>⚡ СОВЕТ</b><div class="muted">Держи телефон ближе к себе и не закрывай страницу.</div></div><div id="conn" class="muted" style="margin-top:14px;font-size:12px">Подключение…</div></aside></section><section class="racewrap"><div class="section">🏁 ТРАССА</div><div id="race" class="race"></div></section></div><div id="countdown" class="countdown"></div><div id="winner" class="winner"><div class="wcard"><div class="trophy">🏆</div><div class="sub">ПОБЕДИТЕЛЬ ШУСТРОТА</div><div id="wname" class="wname"></div><button class="btn primary" id="againBtn">ЕЩЁ ЗАЕЗД</button></div></div><script>
-const cars=['🏎️','🚗','🚙','🚕','🚓','🚘','🛻','🚖','🏍️','🛵','🚜','🚚'];let room=sessionStorage.getItem('shustrotRoom')||Math.random().toString(36).slice(2,6).toUpperCase();sessionStorage.setItem('shustrotRoom',room);let ws,state={players:[],running:false,winner:null};const $=i=>document.getElementById(i),esc=s=>String(s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])),wsurl=()=>(location.protocol==='https:'?'wss://':'ws://')+location.host,join=()=>location.origin+'/join/'+room;function setup(){$('code').textContent=room;$('url').textContent=join();$('qr').src='/qr?text='+encodeURIComponent(join())}function connect(){ws=new WebSocket(wsurl());ws.onopen=()=>{$('conn').textContent='● Сервер подключён';ws.send(JSON.stringify({type:'host_join',room}))};ws.onclose=()=>{$('conn').textContent='○ Переподключение…';setTimeout(connect,1200)};ws.onmessage=e=>{const m=JSON.parse(e.data);if(m.type==='state'){state=m;render()}}}function send(o){if(ws&&ws.readyState===1)ws.send(JSON.stringify(o))}function render(){const c=state.players.filter(p=>p.connected);$('count').textContent=c.length;$('pempty').style.display=state.players.length?'none':'block';$('players').innerHTML=state.players.map((p,i)=>`<div class="pitem"><div class="num">${i+1}</div><div><div class="pname">${esc(p.name)}</div><div class="pstatus">${p.connected?'в игре':'нет связи'}</div></div><div>${Math.round((p.level||0)*100)}%</div></div>`).join('');$('race').innerHTML=state.players.length?state.players.map((p,i)=>`<div class="lane"><div class="lname">${i+1}. ${esc(p.name)}</div><div class="meter"><i style="width:${Math.round((p.level||0)*100)}%"></i></div><div class="car" style="left:${4+(Math.min(100,p.position||0)/100)*90}%">${cars[i%cars.length]}</div></div>`).join(''):'<div class="empty">После подключения игроков здесь появятся дорожки.</div>';if(state.winner){$('wname').textContent=state.winner.name;$('winner').classList.add('show')}else $('winner').classList.remove('show');$('startBtn').disabled=!c.length||state.running}async function start(){if(!state.players.some(p=>p.connected))return;$('winner').classList.remove('show');$('countdown').classList.add('show');for(const x of ['3','2','1','GO!']){$('countdown').textContent=x;await new Promise(r=>setTimeout(r,x==='GO!'?500:650))}$('countdown').classList.remove('show');send({type:'start'})}setup();connect();$('startBtn').onclick=start;$('againBtn').onclick=start;$('resetBtn').onclick=()=>send({type:'reset'});$('clearBtn').onclick=()=>send({type:'clear_players'});$('newBtn').onclick=()=>{room=Math.random().toString(36).slice(2,6).toUpperCase();sessionStorage.setItem('shustrotRoom',room);setup();send({type:'host_join',room})};$('fullBtn').onclick=()=>document.documentElement.requestFullscreen?.();
-</script></body></html>
+<!doctype html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Накричи ЗА ребёнка</title><link rel="stylesheet" href="/styles.css"></head><body>
+<div class="shell">
+<header class="header">
+<h1 class="title"><span class="blue">Накричи</span> ЗА <span class="pink">ребёнка</span></h1>
+<div class="subtitle">Чья команда громче — тот карапуз первым доберётся до финиша!</div>
+<div class="controls"><button id="startBtn" class="btn start">▶ СТАРТ</button><button id="resetBtn" class="btn">↺ СБРОС</button><button id="clearBtn" class="btn danger">УБРАТЬ ИГРОКОВ</button><button id="newBtn" class="btn">НОВАЯ КОМНАТА</button><button id="fullBtn" class="btn">⛶ ВЕСЬ ЭКРАН</button></div>
+</header>
+
+<section class="lobby">
+<div class="team-card boy">
+  <div class="team-head"><small>Команда</small>💙 ЗА МАЛЬЧИКА</div>
+  <img src="/baby-boy.svg" class="baby-preview" alt="">
+  <div class="team-level"><i id="boyLevel"></i></div>
+  <div id="boys" class="member-list"></div>
+</div>
+
+<div class="center">
+  <h2>СКАНИРУЙ <span>QR</span></h2>
+  <div class="tiny">Выбери команду на телефоне и готовь голос</div>
+  <div class="qr-wrap"><img id="qr" class="qr"></div>
+  <div class="tiny">КОД КОМНАТЫ</div>
+  <div id="code" class="room"></div>
+  <div id="joinUrl" class="tiny"></div>
+  <div class="count"><span id="count">0</span> / 12 участников</div>
+  <div id="conn" class="tiny" style="margin-top:7px">Подключение…</div>
+</div>
+
+<div class="team-card girl">
+  <div class="team-head"><small>Команда</small>🩷 ЗА ДЕВОЧКУ</div>
+  <img src="/baby-girl.svg" class="baby-preview" alt="">
+  <div class="team-level"><i id="girlLevel"></i></div>
+  <div id="girls" class="member-list"></div>
+</div>
+</section>
+
+<section class="race-wrap">
+<div class="race-title">КРИЧИ ЗА СВОЮ КОМАНДУ 🔊 <span style="font-size:12px;color:#77758e">— теперь трасса в 3 раза длиннее</span></div>
+
+<div class="track boy">
+  <div class="track-label">💙 МАЛЬЧИК</div>
+  <div class="progress-note" id="boyProgress">0%</div>
+  <div id="boyRunner" class="runner"><img src="/baby-boy.svg" alt=""></div>
+</div>
+
+<div class="track girl">
+  <div class="track-label">🩷 ДЕВОЧКА</div>
+  <div class="progress-note" id="girlProgress">0%</div>
+  <div id="girlRunner" class="runner"><img src="/baby-girl.svg" alt=""></div>
+</div>
+</section>
+</div>
+
+<div id="countdown" class="countdown"></div>
+
+<div id="winner" class="winner">
+  <div class="win-card">
+    <img id="winBaby" class="win-baby-img" alt="">
+    <div class="win-label">ГРОМЧЕ ВСЕХ ОКАЗАЛАСЬ</div>
+    <div id="winnerName" class="win-name"></div>
+    <button id="againBtn" class="btn start">ЕЩЁ ЗАЕЗД</button>
+  </div>
+</div>
+
+<script>
+let room=sessionStorage.getItem('genderRaceRoom')||Math.random().toString(36).slice(2,6).toUpperCase();
+sessionStorage.setItem('genderRaceRoom',room);
+let ws,state={players:[],running:false,winner:null,finish:300};
+const $=x=>document.getElementById(x);
+
+function url(){return(location.protocol==='https:'?'wss://':'ws://')+location.host}
+function join(){return location.origin+'/join/'+room}
+function setup(){
+  $('code').textContent=room;
+  $('joinUrl').textContent=join();
+  $('qr').src='/qr?text='+encodeURIComponent(join());
+}
+function connect(){
+  ws=new WebSocket(url());
+  ws.onopen=()=>{
+    $('conn').textContent='● Сервер подключён';
+    ws.send(JSON.stringify({type:'host_join',room}));
+  };
+  ws.onclose=()=>setTimeout(connect,1200);
+  ws.onmessage=e=>{
+    const m=JSON.parse(e.data);
+    if(m.type==='state'){state=m;render()}
+  };
+}
+function send(o){if(ws&&ws.readyState===1)ws.send(JSON.stringify(o))}
+function esc(s){return String(s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
+
+function render(){
+  const b=state.players.filter(p=>p.team==='boy');
+  const g=state.players.filter(p=>p.team==='girl');
+  const bc=b.filter(p=>p.connected);
+  const gc=g.filter(p=>p.connected);
+
+  $('count').textContent=bc.length+gc.length;
+
+  $('boys').innerHTML=b.length
+    ? b.map(p=>`<div class="member"><span>${esc(p.name)}</span><span>${Math.round(p.level*100)}%</span></div>`).join('')
+    : '<div class="empty">Ждём команду мальчика</div>';
+
+  $('girls').innerHTML=g.length
+    ? g.map(p=>`<div class="member"><span>${esc(p.name)}</span><span>${Math.round(p.level*100)}%</span></div>`).join('')
+    : '<div class="empty">Ждём команду девочки</div>';
+
+  const bl=bc.length?bc.reduce((a,p)=>a+p.level,0)/bc.length:0;
+  const gl=gc.length?gc.reduce((a,p)=>a+p.level,0)/gc.length:0;
+
+  $('boyLevel').style.width=bl*100+'%';
+  $('girlLevel').style.width=gl*100+'%';
+
+  const bp=b[0]?.position||0;
+  const gp=g[0]?.position||0;
+  const finish=state.finish||300;
+
+  const bPct=Math.max(0,Math.min(100,bp/finish*100));
+  const gPct=Math.max(0,Math.min(100,gp/finish*100));
+
+  $('boyRunner').style.left=(6+bPct*.88)+'%';
+  $('girlRunner').style.left=(6+gPct*.88)+'%';
+  $('boyProgress').textContent=Math.round(bPct)+'%';
+  $('girlProgress').textContent=Math.round(gPct)+'%';
+
+  if(state.winner){
+    $('winnerName').textContent=state.winner.name;
+    $('winBaby').src=state.winner.team==='boy'?'/baby-boy.svg':'/baby-girl.svg';
+    $('winner').classList.add('show');
+  }else{
+    $('winner').classList.remove('show');
+  }
+
+  $('startBtn').disabled=!(bc.length&&gc.length)||state.running;
+}
+
+async function start(){
+  if($('startBtn').disabled)return;
+  $('winner').classList.remove('show');
+  $('countdown').classList.add('show');
+
+  for(const x of ['3','2','1','КРИЧИ!']){
+    $('countdown').textContent=x;
+    await new Promise(r=>setTimeout(r,x==='КРИЧИ!'?550:650));
+  }
+
+  $('countdown').classList.remove('show');
+  send({type:'start'});
+}
+
+setup();
+connect();
+$('startBtn').onclick=start;
+$('againBtn').onclick=start;
+$('resetBtn').onclick=()=>send({type:'reset'});
+$('clearBtn').onclick=()=>send({type:'clear_players'});
+$('newBtn').onclick=()=>{
+  room=Math.random().toString(36).slice(2,6).toUpperCase();
+  sessionStorage.setItem('genderRaceRoom',room);
+  setup();
+  send({type:'host_join',room});
+};
+$('fullBtn').onclick=()=>document.documentElement.requestFullscreen?.();
+</script>
+</body></html>
